@@ -1,7 +1,10 @@
+from crontab import CronTab
 import json
 from os.path import expanduser, exists
+from os import mkdir
 import requests
 import shelve
+from shutil import copyfile
 
 def UpdateRecord(email, api_key, zone_id, subdomain_id, subdomain, zone, origin, proxy):
 	"""Updates DNS record at Cloudflare sith supplied info. Record must already exist."""
@@ -67,6 +70,14 @@ def FirstRun(config_location):
 	zone_id = GetZoneId(email, api_key, zone)
 	subdomain_id = GetSubdomainId(email, api_key, zone_id, subdomain)
 	ShelveVariables(config_location, email, api_key, zone, subdomain, zone_id, subdomain_id)
+
+def Install(install_location):
+	mkdir(install_location, 0755)
+	copyfile('dynflare.py', install_location)
+	cron  = CronTab(user=True)
+	job = my_user_cron.new(command=install_location + '/dynflare.py')
+	job.minute.every(1)
+	cron.write()
 
 def main():
 	"""Gets info and stores it at first run, otherwise updates DNS record."""
