@@ -27,7 +27,6 @@ def GetSubdomainId(email, api_key, zone_id, subdomain):
 		if item['name'] == subdomain:
 			return item['id']
 
-
 def GetZoneId(email, api_key, zone):
 	"""Get Cloudflare's zone ID for supplied zone name."""
 	headers = {'X-Auth-Email': email, 'X-Auth-Key': api_key, 'Content-Type': 'application/json'}
@@ -59,6 +58,16 @@ def RetrieveVariables(config_location):
 	shelf.close()
 	return vars
 
+def FirstRun(config_location):
+	"""Collects and stores necessary data on first run."""
+	email = raw_input('What\'s your email: ')
+	api_key = raw_input('API Key: ') 
+	zone = raw_input('Which domain will you be using (e.g. "example.com"): ')
+	subdomain = raw_input('Which subdomain should I update (e.g. "app.example.com"): ')
+	zone_id = GetZoneId(email, api_key, zone)
+	subdomain_id = GetSubdomainId(email, api_key, zone_id, subdomain)
+	ShelveVariables(config_location, email, api_key, zone, subdomain, zone_id, subdomain_id)
+
 def main():
 	"""Gets info and stores it at first run, otherwise updates DNS record."""
 	homedir = expanduser("~")
@@ -68,13 +77,7 @@ def main():
 		ip = GetIp()
 		print UpdateRecord(email, api_key, zone_id, subdomain_id, subdomain, zone, ip, True)
 	else:
-		email = raw_input('What\'s your email: ')
-		api_key = raw_input('API Key: ') 
-		zone = raw_input('Which domain will you be using (e.g. "example.com"): ')
-		subdomain = raw_input('Which subdomain should I update (e.g. "app.example.com"): ')
-		zone_id = GetZoneId(email, api_key, zone)
-		subdomain_id = GetSubdomainId(email, api_key, zone_id, subdomain)
-		ShelveVariables(config_location, email, api_key, zone, subdomain, zone_id, subdomain_id)
+		FirstRun(config_location)
 
 if __name__ == "__main__":
     """ This is executed when run from the command line """
