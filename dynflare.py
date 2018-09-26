@@ -94,7 +94,7 @@ def main():
 	homedir = expanduser("~")
 	install_location = (homedir + '/.dynflare')
 	config_location = (install_location + '/data')
-	if exists(config_location + '.db'):
+	if exists(install_location):
 		email, api_key, zone, subdomain, zone_id, subdomain_id = RetrieveVariables(config_location)
 		ip = GetIp()
 		exisiting_record = GetExisitingRecord(email, api_key, zone_id, subdomain)
