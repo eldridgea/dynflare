@@ -1,5 +1,5 @@
 # dynflare
-Cloudflare DNS record updater tool for dynamic DNS servers
+A Cloudflare DNS record updater tool for servers with dynamic IPs.
 
 This is a small Python script that automatically updates Cloudflare DNS records.
 This is good for servers that are on home ISPs or other connections with a dynamic IP address.
