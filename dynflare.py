@@ -1,7 +1,7 @@
 from crontab import CronTab
 import json
 from os.path import expanduser, exists
-from os import mkdir
+from os import makedirs, chmod
 import requests
 import shelve
 from shutil import copyfile
@@ -21,6 +21,12 @@ def UpdateRecord(email, api_key, zone_id, subdomain_id, subdomain, zone, origin,
 def GetIp():
 	"""Gets publically facing IP address."""
 	return requests.get('https://api.ipify.org').content
+
+def GetExisitingRecord(email, api_key, zone_id, subdomain):
+	"""Returns DNS record for supplied subdomain."""
+	headers = {'X-Auth-Email': email, 'X-Auth-Key': api_key, 'Content-Type': 'application/json'}
+	response = requests.get('https://api.cloudflare.com/client/v4/zones/' + zone_id + '/dns_records?name=' + subdomain, headers=headers)
+	return str(response.json()['result'][0]['content'])
 
 def GetSubdomainId(email, api_key, zone_id, subdomain):
 	"""Get Cloudflare's Subdomain ID with supplied subdomain."""
@@ -61,7 +67,7 @@ def RetrieveVariables(config_location):
 	shelf.close()
 	return vars
 
-def FirstRun(config_location):
+def FirstRun(install_location, config_location):
 	"""Collects and stores necessary data on first run."""
 	email = raw_input('What\'s your email: ')
 	api_key = raw_input('API Key: ') 
@@ -69,26 +75,35 @@ def FirstRun(config_location):
 	subdomain = raw_input('Which subdomain should I update (e.g. "app.example.com"): ')
 	zone_id = GetZoneId(email, api_key, zone)
 	subdomain_id = GetSubdomainId(email, api_key, zone_id, subdomain)
+	makedirs(install_location)
 	ShelveVariables(config_location, email, api_key, zone, subdomain, zone_id, subdomain_id)
+	install =raw_input('Should I install myself to cron so I can run automatically?')
+	if install.lower() == 'yes' or 'y':
+		Install(install_location)
 
 def Install(install_location):
-	mkdir(install_location, 0755)
-	copyfile('dynflare.py', install_location)
+	copyfile('dynflare', install_location +  '/dynflare')
+	chmod(install_location +  '/dynflare', 500)
 	cron  = CronTab(user=True)
-	job = my_user_cron.new(command=install_location + '/dynflare.py')
+	job = cron.new(command=install_location + '/dynflare')
 	job.minute.every(1)
 	cron.write()
 
 def main():
 	"""Gets info and stores it at first run, otherwise updates DNS record."""
 	homedir = expanduser("~")
-	config_location = (homedir + '/.dynflare')
+	install_location = (homedir + '/.dynflare')
+	config_location = (install_location + '/data')
 	if exists(config_location + '.db'):
 		email, api_key, zone, subdomain, zone_id, subdomain_id = RetrieveVariables(config_location)
 		ip = GetIp()
-		print UpdateRecord(email, api_key, zone_id, subdomain_id, subdomain, zone, ip, True)
+		exisiting_record = GetExisitingRecord(email, api_key, zone_id, subdomain)
+		if exisiting_record == ip:
+			print 'nothign to do!'
+		else:
+			print UpdateRecord(email, api_key, zone_id, subdomain_id, subdomain, zone, ip, True)
 	else:
-		FirstRun(config_location)
+		FirstRun(install_location, config_location)
 
 if __name__ == "__main__":
     """ This is executed when run from the command line """
