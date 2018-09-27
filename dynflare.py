@@ -82,7 +82,11 @@ def FirstRun(install_location, config_location):
         Install(install_location)
 
 def Install(install_location):
-    copyfile('dynflare', install_location +  '/dynflare')
+    files = os.listdir('.')
+    for item in files:
+        if item[:8] == 'dynflare':
+            executable = item
+    copyfile(executable, install_location +  '/dynflare')
     chmod(install_location +  '/dynflare', 500)
     cron  = CronTab(user=True)
     job = cron.new(command=install_location + '/dynflare')
