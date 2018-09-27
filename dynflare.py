@@ -1,10 +1,11 @@
 from crontab import CronTab
 import json
 from os.path import expanduser, exists
-from os import makedirs, chmod
+from os import makedirs, chmod, isatty, listdir
 import requests
 import shelve
 from shutil import copyfile
+from sys import stdin
 
 def UpdateRecord(email, api_key, zone_id, subdomain_id, subdomain, zone, origin, proxy):
     """Updates DNS record at Cloudflare sith supplied info. Record must already exist."""
@@ -77,12 +78,12 @@ def FirstRun(install_location, config_location):
     subdomain_id = GetSubdomainId(email, api_key, zone_id, subdomain)
     makedirs(install_location)
     ShelveVariables(config_location, email, api_key, zone, subdomain, zone_id, subdomain_id)
-    install =raw_input('Should I install myself to cron so I can run automatically?')
+    install =raw_input('Should I install myself to cron so I can run automatically: ')
     if install.lower() == 'yes' or 'y':
         Install(install_location)
 
 def Install(install_location):
-    files = os.listdir('.')
+    files = listdir('.')
     for item in files:
         if item[:8] == 'dynflare':
             executable = item
@@ -103,9 +104,16 @@ def main():
         ip = GetIp()
         exisiting_record = GetExisitingRecord(email, api_key, zone_id, subdomain)
         if exisiting_record == ip:
-            print 'nothign to do!'
+            if isatty(stdin.fileno()): # Checks to see if interactive terminal
+                print 'nothign to do!'
+            else:
+                pass
         else:
-            print UpdateRecord(email, api_key, zone_id, subdomain_id, subdomain, zone, ip, True)
+            response = UpdateRecord(email, api_key, zone_id, subdomain_id, subdomain, zone, ip, True)
+            if isatty(stdin.fileno()): # Checks to see if interactive terminal
+                print response
+            else:
+                pass
     else:
         FirstRun(install_location, config_location)
 
