@@ -78,8 +78,8 @@ def FirstRun(install_location, config_location):
     subdomain_id = GetSubdomainId(email, api_key, zone_id, subdomain)
     makedirs(install_location)
     ShelveVariables(config_location, email, api_key, zone, subdomain, zone_id, subdomain_id)
-    install =raw_input('Should I install myself to cron so I can run automatically: ')
-    if install.lower() == 'yes' or 'y':
+    install = raw_input('Should I install myself to cron so I can run automatically: ')
+    if install.lower() == 'yes' or install.lower() == 'y':
         Install(install_location)
 
 def Install(install_location):
