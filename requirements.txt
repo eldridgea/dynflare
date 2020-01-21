@@ -6,7 +6,7 @@ future==0.16.0
 idna==2.7
 macholib==1.11
 pefile==2018.8.8
-PyInstaller==3.4
+PyInstaller==3.6
 python-crontab==2.3.5
 python-dateutil==2.7.3
 requests==2.20.0
