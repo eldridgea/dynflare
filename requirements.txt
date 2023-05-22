@@ -9,7 +9,7 @@ pefile==2018.8.8
 PyInstaller==3.6
 python-crontab==2.3.5
 python-dateutil==2.7.3
-requests==2.20.0
+requests==2.31.0
 six==1.11.0
 urllib3==1.26.5
 wheel==0.38.1
